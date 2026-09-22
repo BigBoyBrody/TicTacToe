@@ -1,0 +1,209 @@
+package cs1102.tictactoe
+
+import kotlin.random.Random
+
+val games : MutableMap<String,Game> = mutableMapOf( //predefined games
+   "Empty" to Game(id = "Empty"),
+    "Game1" to Game(id = "Game1", board = arrayOf( intArrayOf(1,0,1), intArrayOf(0,2,0), intArrayOf(0,0,2)) ),
+    "Game2" to Game(id = "Game2", board = arrayOf( intArrayOf(1,2,1), intArrayOf(1,2,0), intArrayOf(0,0,2)) ),
+
+
+    )
+
+data class Game(
+    val id: String,
+    var board : Array<IntArray> = Array(3) { IntArray(3) {BoardMarks.EMPTY.value} },
+    val level : Int = 0,
+    var isHumansTurn : Boolean = true,
+    var status : GameStatus = GameStatus.PLAYING,
+    val humanSpace : BoardMarks = BoardMarks.X,
+    val cpuSpace : BoardMarks = BoardMarks.O,
+    )
+
+enum class GameStatus{
+    PLAYING,
+    CPU_WIN,
+    HUMAN_WIN,
+    TIE
+}
+
+enum class BoardMarks(val value: Int){
+    EMPTY(0),
+    X(1),
+    O(2)
+}
+
+
+//fun genBoard(board: Array<IntArray>, row: Int, col: Int) : Array<IntArray> {
+//    return when{
+//            row == 3 ->
+//            col == 3 -> genBoard(board,row+1,0)
+//            else -> {
+//                board[row][col] = BoardMarks.EMPTY.value
+//                genBoard(board, row, col+1)
+//            }
+//    }
+//
+//}
+
+fun newGame() : Game{
+    val game = Game(id = "Game" +  (games.size + 1))
+    games.put(game.id, game)
+    println(games)
+    return game
+}
+
+fun checkRow(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int): Boolean{
+    return when{
+        col == 3 ->  true
+        board[row][col] != lastMark.value -> false
+        else -> checkRow(board, lastMark, row, col+1)
+    }
+}
+
+fun checkRows(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int): Boolean{
+    return when{
+        row == 3 -> false
+        checkRow(board, lastMark, row, col)  -> true
+        else -> checkRows(board, lastMark, row +1, col)
+    }
+}
+fun checkCol(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int): Boolean{
+    return when{
+        row == 3 ->  true
+        board[row][col] != lastMark.value -> false
+        else -> checkRow(board, lastMark, row+1, col)
+    }
+}
+
+fun checkCols(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int): Boolean{
+    return when{
+        col == 3 -> false
+        checkCol(board, lastMark, row, col)  -> true
+        else -> checkCols(board, lastMark, row, col+1)
+    }
+}
+
+fun checkPosDiagonal(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int): Boolean{
+    return when{
+        row == 3 && col == 3-> return true
+        board[row][col] != lastMark.value -> false
+        else -> checkRow(board, lastMark, row+1, col+1)
+    }
+}
+fun checkNegDiagonal(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int): Boolean{
+    return when{
+        row == -1 && col == 3-> return true
+        board[row][col] != lastMark.value -> false
+        else -> checkRow(board, lastMark, row-1, col+1)
+    }
+}
+fun isTie(board : Array<IntArray>,row: Int,col: Int) : Boolean{
+    return when{
+       row == 3 && col == 3 -> true
+       board[row][col] != BoardMarks.EMPTY.value -> false
+       else -> {
+           when{
+               col == 3 -> isTie(board, row+1, 0)
+               else -> isTie(board, row, col+1)
+           }
+       }
+    }
+}
+
+fun checkWin(board : Array<IntArray>, lastMark : BoardMarks ): Boolean{
+    //check row
+    return when{
+        checkRows(board, lastMark,0,0) -> true
+        checkCols(board, lastMark,0,0) -> true
+        checkPosDiagonal(board, lastMark,0,0) -> true
+        checkNegDiagonal(board, lastMark,2,0) -> true
+        else -> false
+    }
+}
+
+fun winStatus(game: Game){
+    if(game.isHumansTurn){
+        game.status = GameStatus.HUMAN_WIN
+    }else{
+        game.status = GameStatus.CPU_WIN
+    }
+}
+
+fun cpuPlayer(game: Game){
+    var row = Random.nextInt(3) //0,1,2
+    var col = Random.nextInt(3) //0,1,2
+
+    if(game.board[row][col] == BoardMarks.EMPTY.value){ //if the board is full Its bad and will stakcOverflow make sure there is a check for this
+                                                          //THERE is a check, it checks for tie where all spots filled without win
+        makeMove(game, row, col)
+    }else
+    {
+        cpuPlayer(game)
+    }
+
+}
+
+fun placeMark(game: Game, row: Int, col: Int):BoardMarks{
+    var lastMark: BoardMarks = game.humanSpace //base value will be changed
+
+    when {
+        row < 0 || row >= 3 || col < 0 || col >= 3 -> game // TODO throw something
+        game.board[row][col] != BoardMarks.EMPTY.value -> game // TODO throw error or something
+        else -> {
+            if (game.isHumansTurn) {
+                game.board[row][col] = game.humanSpace.value
+                lastMark = game.humanSpace
+
+            } else
+                game.board[row][col] = game.cpuSpace.value
+            lastMark = game.cpuSpace
+        }
+
+    }
+    return lastMark
+}
+
+fun makeMove(game: Game, row : Int, col: Int) : Game{
+    /**logic checks
+     * Not out of bounds
+     * Open spot
+     */
+    val lastMark: BoardMarks = placeMark(game, row, col) //places mark on board
+
+     if (checkWin(game.board, lastMark)) {
+         //someone won
+         println("Won")
+         winStatus(game)
+     }
+     else if(isTie(game.board,0,0)){
+         println("Tie")
+         game.status = GameStatus.TIE
+     }
+     else {
+         if(game.isHumansTurn){
+             game.isHumansTurn = false
+            cpuPlayer(game)
+
+         }else{//toggles turn
+             game.isHumansTurn = true
+         }
+         println("Game in Progress")
+     }
+
+     return game
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
