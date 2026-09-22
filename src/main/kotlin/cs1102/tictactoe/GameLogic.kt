@@ -190,20 +190,5 @@ fun makeMove(game: Game, row : Int, col: Int) : Game{
          }
          println("Game in Progress")
      }
-
      return game
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
