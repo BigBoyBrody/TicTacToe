@@ -245,8 +245,6 @@ fun main(){
         makeMove(copy2, 0, 1)
         copy2.status shouldBe GameStatus.CPU_WIN
         copy2.board[0][1] = 0
-
-        println(game3)
     }
 
     val game4 = games["Game4"]
