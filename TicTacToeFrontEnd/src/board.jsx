@@ -11,11 +11,11 @@ function Board({ board, onSquareClick }) {
 
   return (
     <div className="board">
-      {board.map((rowArr, r) => (
-        <div className="board-row" key={r}>
-          {rowArr.map((value, c) => (
+      {board.map((rowArr, r) => (//.map gives us the row
+        <div className="board-row" key={r}> {/* the key is the board-row */}
+          {rowArr.map((value, c) => ( //.map gives us the col
             <Square
-              key={c}
+              key={c}//assigns key for that square which is col
               value={CELL_DISPLAY[value]}
               onClick={() => onSquareClick(r, c)}
             />

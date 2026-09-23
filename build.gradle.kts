@@ -25,6 +25,8 @@ dependencies {
     implementation("tools.jackson.module:jackson-module-kotlin")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    implementation("io.kotest:kotest-runner-junit5:5.9.1")
+    implementation("io.kotest:kotest-assertions-core:5.9.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

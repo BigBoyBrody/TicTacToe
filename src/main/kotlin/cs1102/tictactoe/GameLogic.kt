@@ -1,11 +1,26 @@
 package cs1102.tictactoe
 
 import kotlin.random.Random
-// I created the frontend with the help of the provided frontend and an LLM
+import io.kotest.assertions.throwables.shouldNotThrow
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
+
+
+
+/*********************************************************************
+I created the frontend with the help of the provided frontend and an LLM
+**********************************************************************/
+
+
+
+
 val games : MutableMap<String,Game> = mutableMapOf( //predefined games
    "Empty" to Game(id = "Empty"),
     "Game1" to Game(id = "Game1", board = arrayOf( intArrayOf(1,0,1), intArrayOf(0,2,0), intArrayOf(0,0,2)) ),
     "Game2" to Game(id = "Game2", board = arrayOf( intArrayOf(1,2,1), intArrayOf(1,2,0), intArrayOf(0,0,2)) ),
+    "Game3" to Game(id = "Game3", board = arrayOf( intArrayOf(1,0,1), intArrayOf(1,2,0), intArrayOf(0,2,2)) ),
+    "Game4" to Game(id = "Game4", board = arrayOf( intArrayOf(0,2,1), intArrayOf(2,1,1), intArrayOf(2,1,2)) ),
+
     )
 
 data class Game(
@@ -44,6 +59,14 @@ enum class BoardMarks(val value: Int){
 //    }
 //
 //}
+
+fun printBoard(board : Array<IntArray> ,row: Int, col: Int): String {
+    return when{
+        row == 3 -> return ""
+        col == 3 -> printBoard(board, row +1, 0) + "\n"
+        else -> board[row][col].toString() + " " + printBoard(board, row, col+1)
+    }
+}
 
 fun newGame() : Game{
     val game = Game(id = "Game" +  (games.size)) //since one predefined game state is empty we can just get the size without adding one
@@ -150,19 +173,19 @@ fun cpuPlayer(game: Game){
 }
 
 fun placeMark(game: Game, row: Int, col: Int):BoardMarks{
-    var lastMark: BoardMarks = game.humanSpace //base value will be changed
+    //var lastMark: BoardMarks = BoardMarks.EMPTY //base value will be changed
 
-    when {
+    val lastMark: BoardMarks =  when {
         row < 0 || row >= 3 || col < 0 || col >= 3 -> BoardMarks.EMPTY
         game.board[row][col] != BoardMarks.EMPTY.value -> BoardMarks.EMPTY
         else -> {
             if (game.isHumansTurn) {
                 game.board[row][col] = game.humanSpace.value
-                lastMark = game.humanSpace
+                game.humanSpace
 
             } else {
                 game.board[row][col] = game.cpuSpace.value
-                lastMark = game.cpuSpace
+                game.cpuSpace
             }
         }
 
@@ -178,8 +201,6 @@ fun makeMove(game: Game, row : Int, col: Int) : Game{
     val lastMark: BoardMarks = placeMark(game, row, col) //places mark on board
     if (lastMark != BoardMarks.EMPTY && game.status == GameStatus.PLAYING) { //if it returns empty something went wrong(out of bound or player clicked a spot filled so we dont do anything)
         if (checkWin(game.board, lastMark)) {
-            //someone won
-            println("Won")
             winStatus(game)
         } else if (isTie(game.board, 0, 0)) {
             println("Tie")
@@ -192,7 +213,6 @@ fun makeMove(game: Game, row : Int, col: Int) : Game{
             } else {//toggles turn
                 game.isHumansTurn = true
             }
-            println("Game in Progress")
         }
     }
 
@@ -200,6 +220,45 @@ fun makeMove(game: Game, row : Int, col: Int) : Game{
 
 
 }
+
+fun main(){
+    val game1 = games["Game1"]
+    if(game1 is Game) {
+        placeMark(game1, 3, 4) shouldBe BoardMarks.EMPTY
+        placeMark(game1, 0, 0) shouldBe BoardMarks.EMPTY
+        makeMove(game1, 3, 4) shouldBe game1
+        makeMove(game1, 0, 0) shouldBe game1
+    }
+
+    val game3 = games["Game3"]
+    if(game3 is Game) {
+
+        val copy = game3.copy()
+        makeMove(copy, 0, 1)
+        copy.status shouldBe GameStatus.HUMAN_WIN
+
+        val copy2 = game3.copy()
+
+        copy2.board[0][1] = 0
+
+        copy2.isHumansTurn = false
+        makeMove(copy2, 0, 1)
+        copy2.status shouldBe GameStatus.CPU_WIN
+        copy2.board[0][1] = 0
+
+        println(game3)
+    }
+
+    val game4 = games["Game4"]
+    if(game4 is Game) {
+        val copy = game4.copy()
+        makeMove(copy, 0, 0)
+        copy.status shouldBe GameStatus.TIE
+    }
+
+
+
+    }
 
 
 

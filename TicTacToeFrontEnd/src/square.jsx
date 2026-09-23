@@ -2,7 +2,7 @@ function Square({ value, onClick }) {
   const markClass =
     value === "X" ? "mark-x" : value === "O" ? "mark-o" : "";
 
-  return (
+  return (//simply makes a square object with its value and correct display
     <button className={`square ${markClass}`} onClick={onClick}>
       {value}
     </button>
