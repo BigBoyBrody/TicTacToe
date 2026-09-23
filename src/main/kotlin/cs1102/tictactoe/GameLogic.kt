@@ -16,6 +16,7 @@ data class Game(
     val level : Int = 0,
     var isHumansTurn : Boolean = true,
     var status : GameStatus = GameStatus.PLAYING,
+    var winner : String? = null,
     val humanSpace : BoardMarks = BoardMarks.X,
     val cpuSpace : BoardMarks = BoardMarks.O,
     )
@@ -72,7 +73,7 @@ fun checkCol(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int):
     return when{
         row == 3 ->  true
         board[row][col] != lastMark.value -> false
-        else -> checkRow(board, lastMark, row+1, col)
+        else -> checkCol(board, lastMark, row+1, col)
     }
 }
 
@@ -84,27 +85,27 @@ fun checkCols(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int)
     }
 }
 
-fun checkPosDiagonal(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int): Boolean{
-    return when{
-        row == 3 && col == 3-> return true
-        board[row][col] != lastMark.value -> false
-        else -> checkRow(board, lastMark, row+1, col+1)
-    }
-}
 fun checkNegDiagonal(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int): Boolean{
     return when{
-        row == -1 && col == 3-> return true
+        row == 3 && col == 3-> true
         board[row][col] != lastMark.value -> false
-        else -> checkRow(board, lastMark, row-1, col+1)
+        else -> checkNegDiagonal(board, lastMark, row+1, col+1)
+    }
+}
+fun checkPosDiagonal(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int): Boolean{
+    return when{
+        row == -1 && col == 3-> true
+        board[row][col] != lastMark.value -> false
+        else -> checkPosDiagonal(board, lastMark, row-1, col+1)
     }
 }
 fun isTie(board : Array<IntArray>,row: Int,col: Int) : Boolean{
     return when{
-       row == 3 && col == 3 -> true
-       board[row][col] != BoardMarks.EMPTY.value -> false
+       row == 3 -> true
+        col == 3 -> isTie(board, row+1, 0)
+       board[row][col] == BoardMarks.EMPTY.value -> false
        else -> {
            when{
-               col == 3 -> isTie(board, row+1, 0)
                else -> isTie(board, row, col+1)
            }
        }
@@ -114,10 +115,14 @@ fun isTie(board : Array<IntArray>,row: Int,col: Int) : Boolean{
 fun checkWin(board : Array<IntArray>, lastMark : BoardMarks ): Boolean{
     //check row
     return when{
-        checkRows(board, lastMark,0,0) -> true
-        checkCols(board, lastMark,0,0) -> true
-        checkPosDiagonal(board, lastMark,0,0) -> true
-        checkNegDiagonal(board, lastMark,2,0) -> true
+        checkRows(board, lastMark,0,0) ->{println("Won by rows")
+            true}
+        checkCols(board, lastMark,0,0) -> {println("Won by cols")
+            true}
+        checkPosDiagonal(board, lastMark,2,0) -> {println("Won by pos diag")
+            true}
+        checkNegDiagonal(board, lastMark,0,0) -> {println("Won by neg diag")
+            true}
         else -> false
     }
 }
@@ -125,8 +130,10 @@ fun checkWin(board : Array<IntArray>, lastMark : BoardMarks ): Boolean{
 fun winStatus(game: Game){
     if(game.isHumansTurn){
         game.status = GameStatus.HUMAN_WIN
+        game.winner = "Human"
     }else{
         game.status = GameStatus.CPU_WIN
+        game.winner = "Cpu"
     }
 }
 
@@ -155,9 +162,10 @@ fun placeMark(game: Game, row: Int, col: Int):BoardMarks{
                 game.board[row][col] = game.humanSpace.value
                 lastMark = game.humanSpace
 
-            } else
+            } else {
                 game.board[row][col] = game.cpuSpace.value
-            lastMark = game.cpuSpace
+                lastMark = game.cpuSpace
+            }
         }
 
     }
