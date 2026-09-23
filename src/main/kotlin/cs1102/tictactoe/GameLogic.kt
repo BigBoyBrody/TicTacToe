@@ -6,8 +6,6 @@ val games : MutableMap<String,Game> = mutableMapOf( //predefined games
    "Empty" to Game(id = "Empty"),
     "Game1" to Game(id = "Game1", board = arrayOf( intArrayOf(1,0,1), intArrayOf(0,2,0), intArrayOf(0,0,2)) ),
     "Game2" to Game(id = "Game2", board = arrayOf( intArrayOf(1,2,1), intArrayOf(1,2,0), intArrayOf(0,0,2)) ),
-
-
     )
 
 data class Game(
@@ -195,15 +193,3 @@ fun makeMove(game: Game, row : Int, col: Int) : Game{
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
