@@ -29,12 +29,14 @@ function App() {
     if (!gameId || game?.winner || game.board[row][col]) return;
     const updated = await playMove(gameId, row, col);
     setGame(updated);
-    if(updated.status != "PLAYING"){
-      if(updated.status == "TIE"){
+  }
 
-    }
-  }
-  }
+  function getStatusMessage(game) {
+  if (!game) return "Select or start a game";
+  if (game.status === "PLAYING") return "Click board to play";
+  if (game.status === "TIE") return "Draw!";
+  return `${game.winner} wins!`;
+}
 
   return (
     <div className="app">
@@ -65,9 +67,7 @@ function App() {
 
         <div className="game-status">
           <p className="whosTurn">
-            {game?.status != "PLAYING"
-              ? game.status == "TIE" ? "Draw!" : `${game.winner} wins!`
-              : game ? `Click board to play` : "Select or start a game"}
+            {getStatusMessage(game)}
           </p>
         </div>
       </div>
