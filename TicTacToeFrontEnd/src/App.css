@@ -1,0 +1,87 @@
+.app {
+  text-align: center;
+  font-family: sans-serif;
+  padding: 50px;
+}
+
+.board {
+  display: inline-block;
+}
+
+.board-row {
+  display: flex;
+}
+
+h1{
+  font-size: 4.5rem;
+}
+
+
+
+.square {
+  width: 150px;
+  height: 150px;
+  margin: 6px;
+  font-size: 2rem;
+  font-weight: bold;
+
+  background: transparent;   /* matches whatever the page background is */
+  border: 2px solid #7c7e7d;    /* the visible outline of the box */
+  border-radius: 4px;        /* optional: slightly rounded corners */
+
+  cursor: pointer;
+}
+
+
+.square:hover {
+  background: rgba(165, 164, 164, 0.15); /* subtle hover feedback, still see-through-ish */
+}
+.game-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr; /* left/right smaller, middle wider for the board */
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "select board newgame"
+    "status status status";
+  align-items: center; /* aligns all items in grid */
+  gap: 20px;/* spacing between each gap */
+  max-width: 900px; /* forces it to be a certain max width, not filling whole screen */
+  margin: 0 auto; /* centers the whole layout on the page */
+}
+ 
+.select-game {
+  grid-area: select;
+}
+.select-game p{
+  padding-bottom: 450px;
+}
+
+.select-game.select{
+  top: 50px;
+}
+ 
+.board-area {
+  grid-area: board;
+  display: flex;
+  justify-content: center; /* centers the board within its grid cell */
+}
+ 
+.new-game {
+  grid-area: newgame;
+}
+.new-game button {
+  padding: 12px 20px;
+  font-size: 1.3rem;
+ 
+  border: 2px solid #7c7e7d;    /* the visible outline of the box */
+  border-radius: 4px;        /* optional: slightly rounded corners */
+}
+
+.new-game button:hover {
+  background: rgba(165, 164, 164, 0.15); /* subtle hover feedback, still see-through-ish */
+}
+ 
+.game-status {
+  grid-area: status;
+  text-align: center;
+}
