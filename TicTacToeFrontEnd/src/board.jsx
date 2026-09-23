@@ -1,4 +1,34 @@
 import Square from "./square";
+
+const CELL_DISPLAY = {
+  0: "",   // empty
+  1: "X",
+  2: "O",
+};
+
+function Board({ board, onSquareClick }) {
+  if (!board) return <div className="board">No game loaded</div>;
+
+  return (
+    <div className="board">
+      {board.map((rowArr, r) => (
+        <div className="board-row" key={r}>
+          {rowArr.map((value, c) => (
+            <Square
+              key={c}
+              value={CELL_DISPLAY[value]}
+              onClick={() => onSquareClick(r, c)}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default Board;
+
+{/*import Square from "./square";
  
 function Board() {
   return (
@@ -23,4 +53,4 @@ function Board() {
 }
  
 export default Board;
- 
+ */}

@@ -8,23 +8,23 @@ async function parseOrThrow(response, label) {
 }
 
 export async function listGames() {
-  const res = await fetch(`${BASE_URL}/games`);
+  const res = await fetch(`${BASE_URL}/api/games`);
   return parseOrThrow(res, "List games")
 }
 
 export async function getGame(gameId) {
-  const res = await fetch(`${BASE_URL}/games/${gameId}`);
+  const res = await fetch(`${BASE_URL}/api/games/${gameId}`);
   return parseOrThrow(res, "Get game with id")
  
 }
 
 export async function createGame() {
-  const res = await fetch(`${BASE_URL}/games`, { method: 'POST' });
+  const res = await fetch(`${BASE_URL}/api/games`, { method: 'POST' });
   return parseOrThrow(res, "Create Game")
 }
 
 export async function playMove(gameId, row, col) {
-  const res = await fetch(`${BASE_URL}/games/${gameId}`, {
+  const res = await fetch(`${BASE_URL}/api/games/${gameId}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify([row, col]),
