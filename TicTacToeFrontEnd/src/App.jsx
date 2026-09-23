@@ -41,7 +41,6 @@ function App() {
   return (
     <div className="app">
       <h1>Tic Tac Toe</h1>
-
       <div className="game-layout">
         <div className="select-game">
           <p>Select Game</p>
@@ -52,7 +51,7 @@ function App() {
           >
             <option value="" disabled>Choose a game</option>
             {games.map(g => (
-              <option key={g.id} value={g.id}>{g.id}</option>
+              <option key={g.id? g.id: g} value={g.id? g.id: g}>{g.id? g.id: g}</option>
             ))}
           </select>
         </div>

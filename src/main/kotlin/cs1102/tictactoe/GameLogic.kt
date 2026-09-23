@@ -1,13 +1,11 @@
 package cs1102.tictactoe
 
 import kotlin.random.Random
-
+// I created the frontend with the help of the provided frontend and an LLM
 val games : MutableMap<String,Game> = mutableMapOf( //predefined games
    "Empty" to Game(id = "Empty"),
     "Game1" to Game(id = "Game1", board = arrayOf( intArrayOf(1,0,1), intArrayOf(0,2,0), intArrayOf(0,0,2)) ),
     "Game2" to Game(id = "Game2", board = arrayOf( intArrayOf(1,2,1), intArrayOf(1,2,0), intArrayOf(0,0,2)) ),
-
-
     )
 
 data class Game(
@@ -48,7 +46,7 @@ enum class BoardMarks(val value: Int){
 //}
 
 fun newGame() : Game{
-    val game = Game(id = "Game" +  (games.size + 1))
+    val game = Game(id = "Game" +  (games.size)) //since one predefined game state is empty we can just get the size without adding one
     games.put(game.id, game)
     println(games)
     return game
@@ -142,7 +140,7 @@ fun cpuPlayer(game: Game){
     var col = Random.nextInt(3) //0,1,2
 
     if(game.board[row][col] == BoardMarks.EMPTY.value){ //if the board is full Its bad and will stakcOverflow make sure there is a check for this
-                                                          //THERE is a check, it checks for tie where all spots filled without win
+        //THERE is a check, it checks for tie where all spots filled without win
         makeMove(game, row, col)
     }else
     {
@@ -155,8 +153,8 @@ fun placeMark(game: Game, row: Int, col: Int):BoardMarks{
     var lastMark: BoardMarks = game.humanSpace //base value will be changed
 
     when {
-        row < 0 || row >= 3 || col < 0 || col >= 3 -> game // TODO throw something
-        game.board[row][col] != BoardMarks.EMPTY.value -> game // TODO throw error or something
+        row < 0 || row >= 3 || col < 0 || col >= 3 -> BoardMarks.EMPTY
+        game.board[row][col] != BoardMarks.EMPTY.value -> BoardMarks.EMPTY
         else -> {
             if (game.isHumansTurn) {
                 game.board[row][col] = game.humanSpace.value
@@ -178,26 +176,25 @@ fun makeMove(game: Game, row : Int, col: Int) : Game{
      * Open spot
      */
     val lastMark: BoardMarks = placeMark(game, row, col) //places mark on board
+    if (lastMark != BoardMarks.EMPTY && game.status == GameStatus.PLAYING) { //if it returns empty something went wrong(out of bound or player clicked a spot filled so we dont do anything)
+        if (checkWin(game.board, lastMark)) {
+            //someone won
+            println("Won")
+            winStatus(game)
+        } else if (isTie(game.board, 0, 0)) {
+            println("Tie")
+            game.status = GameStatus.TIE
+        } else {
+            if (game.isHumansTurn) {
+                game.isHumansTurn = false
+                cpuPlayer(game)
 
-     if (checkWin(game.board, lastMark)) {
-         //someone won
-         println("Won")
-         winStatus(game)
-     }
-     else if(isTie(game.board,0,0)){
-         println("Tie")
-         game.status = GameStatus.TIE
-     }
-     else {
-         if(game.isHumansTurn){
-             game.isHumansTurn = false
-            cpuPlayer(game)
-
-         }else{//toggles turn
-             game.isHumansTurn = true
-         }
-         println("Game in Progress")
-     }
+            } else {//toggles turn
+                game.isHumansTurn = true
+            }
+            println("Game in Progress")
+        }
+    }
 
      return game
 

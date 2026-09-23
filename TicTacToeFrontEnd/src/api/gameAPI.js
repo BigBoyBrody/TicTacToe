@@ -9,6 +9,7 @@ async function parseOrThrow(response, label) {
 
 export async function listGames() {
   const res = await fetch(`${BASE_URL}/api/games`);
+  console.log("listGames response:", res);
   return parseOrThrow(res, "List games")
 }
 

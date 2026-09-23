@@ -51,10 +51,13 @@ h1{
  
 .select-game {
   grid-area: select;
-}
-.select-game p{
   padding-bottom: 450px;
+  text-align: center;
+  text-align-last: center;
 }
+/* .select-game p{
+  padding-bottom: 450px;
+} */
 
 .select-game.select{
   top: 50px;
@@ -64,6 +67,15 @@ h1{
   grid-area: board;
   display: flex;
   justify-content: center; /* centers the board within its grid cell */
+}
+
+.mark-x {
+  color: #2563eb; /* blue */
+  font-size: 5rem;
+}
+.mark-o {
+  color: #dc2626; /* red */
+  font-size: 5rem;
 }
  
 .new-game {
