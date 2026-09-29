@@ -172,6 +172,65 @@ fun cpuPlayer(game: Game){
 
 }
 
+fun miniMax(game : Game, diffLevel: Int): Game{
+    fun search(game: Game, depth: Int): Int{
+        return when{
+            trivialCases(game.board,depth) ->utilScore(game.board)
+            game.isHumansTurn -> (getNextStates(game,game.humanSpace).map{search(it,depth-1)}).min()
+            else -> (getNextStates(game,game.cpuSpace).map{search(it,depth-1)}).max()
+        }
+    }
+    return
+}
+
+//TODO
+//find empty spots for each game
+fun getNextStates(game: Game, marker: BoardMarks): List<Game>{
+    fun getEmptySpots( row: Int,col: Int): Array<IntArray>{
+        return when{
+            col == 3 -> getEmptySpots( row+1, 0)
+            row == 3 -> emptyArray()
+            game.board[row][col] == BoardMarks.EMPTY.value -> arrayOf(intArrayOf(row,col)) + getEmptySpots(row,col+1)
+            else -> getEmptySpots(row,col+1)
+        }
+    }
+    var emptySpaces = getEmptySpots(0,0)
+
+    fun generateStates(): List<Game>{
+        return when{
+            emptySpaces.isEmpty() -> emptyList()
+            else -> {
+                var newBoard = game.board.clone()
+                newBoard[emptySpaces[0][0]][emptySpaces[0][1]] = marker.value
+                emptySpaces = emptySpaces.drop(1).toTypedArray() //updates for terminal check
+                listOf(game.copy(board = newBoard)) + generateStates() //returns and recurses
+            }
+        }
+    }
+
+    return generateStates()
+}
+
+
+fun trivialCases(board : Array<IntArray>, depth : Int): Boolean{
+    return when{
+        checkWin(board, BoardMarks.X) -> true
+        checkWin(board, BoardMarks.O) -> true
+        isTie(board,0,0) -> true
+        depth == 0 -> true
+        else -> false
+    }
+}
+
+fun utilScore(board: Array<IntArray>) :Int{
+    return when{
+        checkWin(board, BoardMarks.X) -> -100
+        checkWin(board, BoardMarks.O) -> 100
+        isTie(board,0,0) -> 0
+        else -> 0
+    }
+}
+
 fun placeMark(game: Game, row: Int, col: Int):BoardMarks{
     //var lastMark: BoardMarks = BoardMarks.EMPTY //base value will be changed
 
