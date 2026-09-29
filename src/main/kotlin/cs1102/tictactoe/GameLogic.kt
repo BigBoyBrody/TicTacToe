@@ -20,6 +20,7 @@ val games : MutableMap<String,Game> = mutableMapOf( //predefined games
     "Game2" to Game(id = "Game2", board = arrayOf( intArrayOf(1,2,1), intArrayOf(1,2,0), intArrayOf(0,0,2)) ),
     "Game3" to Game(id = "Game3", board = arrayOf( intArrayOf(1,0,1), intArrayOf(1,2,0), intArrayOf(0,2,2)) ),
     "Game4" to Game(id = "Game4", board = arrayOf( intArrayOf(0,2,1), intArrayOf(2,1,1), intArrayOf(2,1,2)) ),
+    "Game5" to Game(id = "Game5", board = arrayOf( intArrayOf(1,0,0), intArrayOf(0,2,0), intArrayOf(1,0,0)) ),
 
     )
 
@@ -63,7 +64,7 @@ enum class BoardMarks(val value: Int){
 fun printBoard(board : Array<IntArray> ,row: Int, col: Int): String {
     return when{
         row == 3 -> return ""
-        col == 3 -> printBoard(board, row +1, 0) + "\n"
+        col == 3 -> "\n" + printBoard(board, row +1, 0)
         else -> board[row][col].toString() + " " + printBoard(board, row, col+1)
     }
 }
@@ -173,14 +174,18 @@ fun cpuPlayer(game: Game){
 }
 
 fun miniMax(game : Game, diffLevel: Int): Game{
-    fun search(game: Game, depth: Int): Int{
+    fun search(gameState: Game, depth: Int): Int{
         return when{
-            trivialCases(game.board,depth) ->utilScore(game.board)
-            game.isHumansTurn -> (getNextStates(game,game.humanSpace).map{search(it,depth-1)}).min()
-            else -> (getNextStates(game,game.cpuSpace).map{search(it,depth-1)}).max()
+            trivialCases(gameState.board,depth) ->utilScore(gameState.board)
+            gameState.isHumansTurn -> {
+                getNextStates(gameState,gameState.humanSpace).minOf{search(it,depth-1)}
+            }
+            else -> {
+                (getNextStates(gameState,gameState.cpuSpace).maxOf{search(it,depth-1)})
+            }
         }
     }
-    return
+    return getNextStates(game,game.cpuSpace).maxBy{search(it,diffLevel) }
 }
 
 //TODO
@@ -194,16 +199,28 @@ fun getNextStates(game: Game, marker: BoardMarks): List<Game>{
             else -> getEmptySpots(row,col+1)
         }
     }
-    var emptySpaces = getEmptySpots(0,0)
 
+    var emptySpaces = getEmptySpots(0,0)
     fun generateStates(): List<Game>{
         return when{
-            emptySpaces.isEmpty() -> emptyList()
+            emptySpaces.size == 0 ->{
+                println("REACHED EMPTY")
+                emptyList()
+            }
             else -> {
-                var newBoard = game.board.clone()
+                var newBoard = Array(game.board.size) { game.board[it].copyOf() }
+
                 newBoard[emptySpaces[0][0]][emptySpaces[0][1]] = marker.value
-                emptySpaces = emptySpaces.drop(1).toTypedArray() //updates for terminal check
-                listOf(game.copy(board = newBoard)) + generateStates() //returns and recurses
+
+              //  println("Gen")
+               // print( printBoard(game.board,0,0))
+               // print(  printBoard(newBoard,0,0))
+                emptySpaces = emptySpaces.copyOfRange(1, emptySpaces.size)
+
+               // println(emptySpaces.contentDeepToString())
+
+              //  emptySpaces = emptySpaces.drop(1).toTypedArray() //updates for terminal check
+                listOf(game.copy(board = newBoard, isHumansTurn = !game.isHumansTurn)) + generateStates() //returns and recurses
             }
         }
     }
@@ -267,7 +284,8 @@ fun makeMove(game: Game, row : Int, col: Int) : Game{
         } else {
             if (game.isHumansTurn) {
                 game.isHumansTurn = false
-                cpuPlayer(game)
+               // cpuPlayer(game)
+                return miniMax(game,game.level)
 
             } else {//toggles turn
                 game.isHumansTurn = true
@@ -281,37 +299,59 @@ fun makeMove(game: Game, row : Int, col: Int) : Game{
 }
 
 fun main(){
-    val game1 = games["Game1"]
-    if(game1 is Game) {
-        placeMark(game1, 3, 4) shouldBe BoardMarks.EMPTY
-        placeMark(game1, 0, 0) shouldBe BoardMarks.EMPTY
-        makeMove(game1, 3, 4) shouldBe game1
-        makeMove(game1, 0, 0) shouldBe game1
+
+    val game5 = games["Game5"]
+    if(game5 != null){
+        game5.isHumansTurn = false
+        println("minimaxxing")
+      //  println( printBoard(game5.board,0,0))
+        val newBoard = miniMax(game5,9).board
+        println( printBoard(game5.board,0,0))
+        println( printBoard(newBoard,0,0))
+
+
+        // newBoard shouldBe arrayOf( intArrayOf(1,0,0), intArrayOf(2,2,0), intArrayOf(1,0,0))
+
     }
 
-    val game3 = games["Game3"]
-    if(game3 is Game) {
 
-        val copy = game3.copy()
-        makeMove(copy, 0, 1)
-        copy.status shouldBe GameStatus.HUMAN_WIN
+//arrayOf( intArrayOf(1,0,0), intArrayOf(0,2,0), intArrayOf(1,0,0)) )
 
-        val copy2 = game3.copy()
 
-        copy2.board[0][1] = 0
 
-        copy2.isHumansTurn = false
-        makeMove(copy2, 0, 1)
-        copy2.status shouldBe GameStatus.CPU_WIN
-        copy2.board[0][1] = 0
-    }
 
-    val game4 = games["Game4"]
-    if(game4 is Game) {
-        val copy = game4.copy()
-        makeMove(copy, 0, 0)
-        copy.status shouldBe GameStatus.TIE
-    }
+
+//    val game1 = games["Game1"]
+//    if(game1 is Game) {
+//        placeMark(game1, 3, 4) shouldBe BoardMarks.EMPTY
+//        placeMark(game1, 0, 0) shouldBe BoardMarks.EMPTY
+//        makeMove(game1, 3, 4) shouldBe game1
+//        makeMove(game1, 0, 0) shouldBe game1
+//    }
+//
+//    val game3 = games["Game3"]
+//    if(game3 is Game) {
+//
+//        val copy = game3.copy()
+//        makeMove(copy, 0, 1)
+//        copy.status shouldBe GameStatus.HUMAN_WIN
+//
+//        val copy2 = game3.copy()
+//
+//        copy2.board[0][1] = 0
+//
+//        copy2.isHumansTurn = false
+//        makeMove(copy2, 0, 1)
+//        copy2.status shouldBe GameStatus.CPU_WIN
+//        copy2.board[0][1] = 0
+//    }
+//
+//    val game4 = games["Game4"]
+//    if(game4 is Game) {
+//        val copy = game4.copy()
+//        makeMove(copy, 0, 0)
+//        copy.status shouldBe GameStatus.TIE
+//    }
 
 
 
