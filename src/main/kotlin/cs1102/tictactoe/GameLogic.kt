@@ -70,55 +70,55 @@ fun printBoard(board : Array<IntArray> ,row: Int, col: Int): String {
 }
 
 fun newGame() : Game{
-    val game = Game(id = "Game" +  (games.size)) //since one predefined game state is empty we can just get the size without adding one
+    val game = Game(id = "Game" +  (games.size), level = 9) //since one predefined game state is empty we can just get the size without adding one
     games.put(game.id, game)
     println(games)
     return game
 }
 
-fun checkRow(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int): Boolean{
+fun checkRow(board : Array<IntArray>, markToCheck: BoardMarks, row: Int, col: Int): Boolean{
     return when{
         col == 3 ->  true
-        board[row][col] != lastMark.value -> false
-        else -> checkRow(board, lastMark, row, col+1)
+        board[row][col] != markToCheck.value -> false
+        else -> checkRow(board, markToCheck, row, col+1)
     }
 }
 
-fun checkRows(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int): Boolean{
+fun checkRows(board : Array<IntArray>, markToCheck: BoardMarks, row: Int, col: Int): Boolean{
     return when{
         row == 3 -> false
-        checkRow(board, lastMark, row, col)  -> true
-        else -> checkRows(board, lastMark, row +1, col)
+        checkRow(board, markToCheck, row, col)  -> true
+        else -> checkRows(board, markToCheck, row +1, col)
     }
 }
-fun checkCol(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int): Boolean{
+fun checkCol(board : Array<IntArray>, markToCheck: BoardMarks, row: Int, col: Int): Boolean{
     return when{
         row == 3 ->  true
-        board[row][col] != lastMark.value -> false
-        else -> checkCol(board, lastMark, row+1, col)
+        board[row][col] != markToCheck.value -> false
+        else -> checkCol(board, markToCheck, row+1, col)
     }
 }
 
-fun checkCols(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int): Boolean{
+fun checkCols(board : Array<IntArray>, markToCheck: BoardMarks, row: Int, col: Int): Boolean{
     return when{
         col == 3 -> false
-        checkCol(board, lastMark, row, col)  -> true
-        else -> checkCols(board, lastMark, row, col+1)
+        checkCol(board, markToCheck, row, col)  -> true
+        else -> checkCols(board, markToCheck, row, col+1)
     }
 }
 
-fun checkNegDiagonal(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int): Boolean{
+fun checkNegDiagonal(board : Array<IntArray>, markToCheck: BoardMarks, row: Int, col: Int): Boolean{
     return when{
         row == 3 && col == 3-> true
-        board[row][col] != lastMark.value -> false
-        else -> checkNegDiagonal(board, lastMark, row+1, col+1)
+        board[row][col] != markToCheck.value -> false
+        else -> checkNegDiagonal(board, markToCheck, row+1, col+1)
     }
 }
-fun checkPosDiagonal(board : Array<IntArray>, lastMark: BoardMarks, row: Int, col: Int): Boolean{
+fun checkPosDiagonal(board : Array<IntArray>, markToCheck: BoardMarks, row: Int, col: Int): Boolean{
     return when{
         row == -1 && col == 3-> true
-        board[row][col] != lastMark.value -> false
-        else -> checkPosDiagonal(board, lastMark, row-1, col+1)
+        board[row][col] != markToCheck.value -> false
+        else -> checkPosDiagonal(board, markToCheck, row-1, col+1)
     }
 }
 fun isTie(board : Array<IntArray>,row: Int,col: Int) : Boolean{
@@ -134,17 +134,13 @@ fun isTie(board : Array<IntArray>,row: Int,col: Int) : Boolean{
     }
 }
 
-fun checkWin(board : Array<IntArray>, lastMark : BoardMarks ): Boolean{
+fun checkWin(board : Array<IntArray>, markToCheck : BoardMarks ): Boolean{
     //check row
     return when{
-        checkRows(board, lastMark,0,0) ->{println("Won by rows")
-            true}
-        checkCols(board, lastMark,0,0) -> {println("Won by cols")
-            true}
-        checkPosDiagonal(board, lastMark,2,0) -> {println("Won by pos diag")
-            true}
-        checkNegDiagonal(board, lastMark,0,0) -> {println("Won by neg diag")
-            true}
+        checkRows(board, markToCheck,0,0) -> true
+        checkCols(board, markToCheck,0,0) -> true
+        checkPosDiagonal(board, markToCheck,2,0) -> true
+        checkNegDiagonal(board, markToCheck,0,0) -> true
         else -> false
     }
 }
@@ -172,7 +168,10 @@ fun cpuPlayer(game: Game){
     }
 
 }
-
+/**
+ *
+ *
+ */
 fun miniMax(game : Game, diffLevel: Int): Game{
     fun search(gameState: Game, depth: Int): Int{
         return when{
@@ -203,23 +202,12 @@ fun getNextStates(game: Game, marker: BoardMarks): List<Game>{
     var emptySpaces = getEmptySpots(0,0)
     fun generateStates(): List<Game>{
         return when{
-            emptySpaces.size == 0 ->{
-                println("REACHED EMPTY")
-                emptyList()
-            }
+            emptySpaces.size == 0 ->emptyList()
             else -> {
-                var newBoard = Array(game.board.size) { game.board[it].copyOf() }
+                var newBoard = Array(game.board.size) { game.board[it].copyOf() }//deepy copy of the board
 
                 newBoard[emptySpaces[0][0]][emptySpaces[0][1]] = marker.value
-
-              //  println("Gen")
-               // print( printBoard(game.board,0,0))
-               // print(  printBoard(newBoard,0,0))
-                emptySpaces = emptySpaces.copyOfRange(1, emptySpaces.size)
-
-               // println(emptySpaces.contentDeepToString())
-
-              //  emptySpaces = emptySpaces.drop(1).toTypedArray() //updates for terminal check
+                emptySpaces = emptySpaces.copyOfRange(1, emptySpaces.size) //updates for terminal check
                 listOf(game.copy(board = newBoard, isHumansTurn = !game.isHumansTurn)) + generateStates() //returns and recurses
             }
         }
@@ -250,52 +238,52 @@ fun utilScore(board: Array<IntArray>) :Int{
 
 fun placeMark(game: Game, row: Int, col: Int):BoardMarks{
     //var lastMark: BoardMarks = BoardMarks.EMPTY //base value will be changed
-
+    //We only have to check if player inputted valid spot
     val lastMark: BoardMarks =  when {
         row < 0 || row >= 3 || col < 0 || col >= 3 -> BoardMarks.EMPTY
         game.board[row][col] != BoardMarks.EMPTY.value -> BoardMarks.EMPTY
-        else -> {
-            if (game.isHumansTurn) {
-                game.board[row][col] = game.humanSpace.value
-                game.humanSpace
-
-            } else {
-                game.board[row][col] = game.cpuSpace.value
-                game.cpuSpace
-            }
+        else -> { //only the human/player calls this function
+            game.board[row][col] = game.humanSpace.value
+            game.humanSpace
         }
 
     }
     return lastMark
 }
 
-fun makeMove(game: Game, row : Int, col: Int) : Game{
-    /**logic checks
-     * Not out of bounds
-     * Open spot
-     */
-    val lastMark: BoardMarks = placeMark(game, row, col) //places mark on board
-    if (lastMark != BoardMarks.EMPTY && game.status == GameStatus.PLAYING) { //if it returns empty something went wrong(out of bound or player clicked a spot filled so we dont do anything)
-        if (checkWin(game.board, lastMark)) {
-            winStatus(game)
-        } else if (isTie(game.board, 0, 0)) {
-            println("Tie")
-            game.status = GameStatus.TIE
-        } else {
-            if (game.isHumansTurn) {
-                game.isHumansTurn = false
-               // cpuPlayer(game)
-                return miniMax(game,game.level)
-
-            } else {//toggles turn
-                game.isHumansTurn = true
-            }
-        }
+fun checkStatus(game: Game, marker: BoardMarks):Boolean{
+    if(checkWin(game.board, marker)){
+        winStatus(game)
+        return true
+    }
+    else if(isTie(game.board,0,0)){
+        game.status = GameStatus.TIE
+        return true
+    }else
+    {
+        return false
     }
 
+
+}
+
+fun makeMove(game: Game, row : Int, col: Int) : Game{
+  //The frontend calls this function, meaning the player clicked this spot
+    val lastMark: BoardMarks = placeMark(game, row, col) //places mark on board with players mark
+    if (lastMark != BoardMarks.EMPTY && game.status == GameStatus.PLAYING) { //if it returns empty something went wrong(out of bound or player clicked a spot filled so we dont do anything)
+       if(!checkStatus(game,game.humanSpace)) {//this checks if game ended by checking if human won or tie, if neither we continue
+           //The human just went so we want to play the cpus turn
+           game.isHumansTurn = false//now cpus turn
+
+           val cpusGame = miniMax(game,game.level)// this is the best calculated move based off of algo + diff level
+           game.board = cpusGame.board//mutates board to reflect it on backend
+
+           if(!checkStatus(game,game.cpuSpace)) {//now we check if its a win for cpu or tie and then move one
+                game.isHumansTurn = true//back to humans turn
+           }
+        }
+    }
      return game
-
-
 }
 
 fun main(){
