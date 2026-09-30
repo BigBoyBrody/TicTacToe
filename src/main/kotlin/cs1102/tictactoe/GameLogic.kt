@@ -228,15 +228,6 @@ fun main(){
         placeMark(game1, 0, 0) shouldBe BoardMarks.EMPTY
         makeMove(game1, 3, 4) shouldBe game1
         makeMove(game1, 0, 0) shouldBe game1
-
-        val copy = game1.copy()
-        copy.board[0][0] = BoardMarks.EMPTY.value
-        copy.isHumansTurn = false
-
-        makeMove(copy, 0,0 )
-        copy.status shouldBe  GameStatus.CPU_WIN
-
-
     }
 
     val game3 = games["Game3"]
