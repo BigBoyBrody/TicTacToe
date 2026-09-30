@@ -16,11 +16,12 @@ I created the frontend with the help of the provided frontend and an LLM
 
 val games : MutableMap<String,Game> = mutableMapOf( //predefined games
     "Empty" to Game(id = "Empty"),
-    "Game1" to Game(id = "Game1", board = arrayOf( intArrayOf(1,0,1), intArrayOf(0,2,0), intArrayOf(0,0,2)) ),
-    "Game2" to Game(id = "Game2", board = arrayOf( intArrayOf(1,2,1), intArrayOf(1,2,0), intArrayOf(0,0,2)) ),
-    "Game3" to Game(id = "Game3", board = arrayOf( intArrayOf(1,0,1), intArrayOf(1,2,0), intArrayOf(0,2,2)) ),
-    "Game4" to Game(id = "Game4", board = arrayOf( intArrayOf(0,2,1), intArrayOf(2,1,1), intArrayOf(2,1,2)) ),
-    "Game5" to Game(id = "Game5", board = arrayOf( intArrayOf(1,0,0), intArrayOf(0,2,0), intArrayOf(1,0,0)) ),
+    "Game1" to Game(id = "Game1", board = arrayOf( intArrayOf(1,0,0), intArrayOf(0,2,0), intArrayOf(0,0,0)), level = 2),//x goes top right for testing o must got top middle for block
+    "Game2" to Game(id = "Game2", board = arrayOf( intArrayOf(1,0,2), intArrayOf(0,2,0), intArrayOf(0,0,1)), level = 1),//x goes middle right// o must got bottom left for win
+    "Game3" to Game(id = "Game3", board = arrayOf( intArrayOf(0,0,0), intArrayOf(1,2,1), intArrayOf(0,2,0)), level = 1),//x goes bot right, goes top mid to win
+    "Game4" to Game(id = "Game4", board = arrayOf( intArrayOf(1,0,1), intArrayOf(2,2,0), intArrayOf(0,0,0)), level = 1 ),//x goes bot right, o foes mid right to win
+    "Game5" to Game(id = "Game5", board = arrayOf( intArrayOf(0,0,1), intArrayOf(2,0,1), intArrayOf(0,0,2)), level = 2),// x goes center, o blocks bottom left
+    "Game6" to Game(id = "Game6", board = arrayOf( intArrayOf(1,0,0), intArrayOf(0,2,0), intArrayOf(0,0,0)), level = 2),// x goes bot left 0 blocks mid left
 
     )
 
@@ -72,7 +73,6 @@ fun printBoard(board : Array<IntArray> ,row: Int, col: Int): String {
 fun newGame(difficultyLevel: Int) : Game{
     val game = Game(id = "Game" +  (games.size), level = difficultyLevel) //since one predefined game state is empty we can just get the size without adding one
     games.put(game.id, game)
-    println(game.level)
     return game
 }
 
@@ -169,26 +169,36 @@ fun cpuPlayer(game: Game){
 
 }
 
+fun pickRandomEmpty(emptySpots: Array<IntArray> ): IntArray{
+    val rndSpot = Random.nextInt(emptySpots.size)
+    return emptySpots[rndSpot]
+}
+
 fun basicDepthSearch(game: Game, depth: Int): Game{
-    if(depth == 1){
-        var emptySpots = getEmptySpots(game,0,0)
-        fun recurseEmptySpots(emptySpots: Array<IntArray>): Game{
-            if(emptySpots.size == 1) {//end case if we are on the last one no other game worked return this one
-                game.board[emptySpots[0][1]][emptySpots[0][1]] = game.cpuSpace.value
-                return game
-            }else {
-                val newBoard = Array(game.board.size) { game.board[it].copyOf() }//deep copy of the board
-                newBoard[emptySpots[0][0]][emptySpots[1][0]] = game.cpuSpace.value
-                if (checkWin(newBoard, game.cpuSpace)) {
-                    return game.copy(board = newBoard)//winning spot place it here
-                } else {
-                    return recurseEmptySpots(emptySpots.copyOfRange(1, emptySpots.size))
-                }
+    val emptySpots = getEmptySpots(game,0,0)
+    if (emptySpots.isEmpty()) return game
+
+    fun newBoard(spot: IntArray, marker: BoardMarks): Array<IntArray>{
+        val newBoard = Array(game.board.size) { game.board[it].copyOf() }//deep copy of the board
+        newBoard[spot[0]][spot[1]] = marker.value
+        return newBoard
+    }
+    //I found out about firstOrNull while looking up getting first from filter and it works great, it gives me first winning spot by inputting the spot with the empty coordinates
+    val winningSpot = emptySpots.firstOrNull({checkWin(newBoard(it,game.cpuSpace), game.cpuSpace)})
+    return if(winningSpot != null){
+        game.copy(board = newBoard(winningSpot, game.cpuSpace))
+    }else{
+        if(depth == 2){//we want to block the otehr win so check mins/check players board
+            val blockingSpot = emptySpots.firstOrNull({checkWin(newBoard(it,game.humanSpace), game.humanSpace)})
+            if(blockingSpot != null) {
+                game.copy(board = newBoard(blockingSpot, game.cpuSpace))
+            }else{
+                game.copy(board = newBoard(pickRandomEmpty(emptySpots), game.cpuSpace))
             }
+        }else{
+            game.copy(board = newBoard(pickRandomEmpty(emptySpots), game.cpuSpace))
         }
-        return recurseEmptySpots(emptySpots)
-    }else{//else depth ==2
-        return  game   }
+    }
 }
 
 
@@ -209,7 +219,7 @@ fun miniMax(game : Game, diffLevel: Int): Game{
             }
         }
     }
-    return getNextStates(game,game.cpuSpace).maxBy{search(it,diffLevel) }
+    return getNextStates(game,game.cpuSpace).maxBy{search(it,diffLevel-1) }
 }
 
 fun getEmptySpots(game: Game, row: Int,col: Int): Array<IntArray>{
@@ -228,9 +238,10 @@ fun getNextStates(game: Game, marker: BoardMarks): List<Game>{
             emptySpaces.size == 0 ->emptyList()
             else -> {
                 var newBoard = Array(game.board.size) { game.board[it].copyOf() }//deep copy of the board
-
-                newBoard[emptySpaces[0][0]][emptySpaces[0][1]] = marker.value
-                emptySpaces = emptySpaces.copyOfRange(1, emptySpaces.size) //updates for terminal check
+                val randomSpace = pickRandomEmpty(emptySpaces)
+                newBoard[randomSpace[0]][randomSpace[1]] = marker.value
+                //emptySpaces = emptySpaces.copyOfRange(1, emptySpaces.size) //updates for terminal check
+                emptySpaces = emptySpaces.filter {!it.contentEquals(randomSpace)  }.toTypedArray()//returns every thing that dosent equal the row,col so filtering it out
                 listOf(game.copy(board = newBoard, isHumansTurn = !game.isHumansTurn)) + generateStates() //returns and recurses
             }
         }
@@ -311,19 +322,60 @@ fun makeMove(game: Game, row : Int, col: Int) : Game{
 
 fun main(){
 
-    val game5 = games["Game5"]
-    if(game5 != null){
-        game5.isHumansTurn = false
-        println("minimaxxing")
-        //  println( printBoard(game5.board,0,0))
-        val newBoard = miniMax(game5,9).board
-        println( printBoard(game5.board,0,0))
-        println( printBoard(newBoard,0,0))
-
-
-        // newBoard shouldBe arrayOf( intArrayOf(1,0,0), intArrayOf(2,2,0), intArrayOf(1,0,0))
-
+    //Tests for level 1
+    val game2 = games["Game2"]
+    if(game2 != null){//DIAG WIN
+        makeMove(game2,1,2)//x goes middle right
+        //O should go bottom left
+        game2.board[2][0] shouldBe  game2.cpuSpace.value
+        game2.status shouldBe GameStatus.CPU_WIN
     }
+
+    val game3 = games["Game3"]
+    if(game3 != null){// COL WIN
+        makeMove(game3,2,2)//x goes bot right
+        //O should go top mid
+        game3.board[0][1] shouldBe  game3.cpuSpace.value
+        game3.status shouldBe GameStatus.CPU_WIN
+    }
+
+    val game4 = games["Game4"]
+    if(game4!= null){ // ROW WIN
+        makeMove(game4,2,2)//x goes bot right
+        //O should go mid right
+        game4.board[1][2] shouldBe game4.cpuSpace.value
+        game4.status shouldBe GameStatus.CPU_WIN
+    }
+
+
+
+    //test for level 2
+    val game5 = games["Game5"]
+    if(game5 != null){ // DIAG BLOCK
+        makeMove(game5,1,1)//x goes center
+        //O should go bottom left
+        game5.board[2][0] shouldBe  game5.cpuSpace.value
+        game5.status shouldBe GameStatus.PLAYING
+    }
+
+    val game6 = games["Game6"]
+    if(game6 != null){ //COL BLOCK
+        makeMove(game6,2,0)//x bott left
+        //O blocks mid left
+        game6.board[1][0] shouldBe  game6.cpuSpace.value
+        game6.status shouldBe GameStatus.PLAYING
+    }
+
+    val game1 = games["Game1"]
+    if(game1!= null){ //ROW BLOCK
+        makeMove(game1,0,2)//x goes top right
+        //O should go top mid
+        game1.board[0][1] shouldBe game1.cpuSpace.value
+        game1.status shouldBe GameStatus.PLAYING
+    }
+
+
+
 
 
 //arrayOf( intArrayOf(1,0,0), intArrayOf(0,2,0), intArrayOf(1,0,0)) )
