@@ -7,6 +7,8 @@ function App() {
   const [games, setGames] = useState([]);
   const [gameId, setGameId] = useState(null);
   const [game, setGame] = useState(null); // { id, board, turn, winner }
+  const [difficulty, setDifficulty] = useState(""); // "" means nothing picked yet
+
 //These constants hold variables that get updated by setGames, setGameID, and Set game
 //They are updated when a property of them changes
 // they start off as [] null null respectively
@@ -27,17 +29,43 @@ function App() {
     const g = await getGame(id);
     setGameId(id);
     setGame(g);
+    setDifficulty(g.level ? String(g.level) : "0"); // default to 0 if level is missing somehow
   }
 //Calls the backend to create a new game, adds it to the games list, and makes it the active game
   async function handleNewGame() {
-    const g = await createGame();
+     const parsed = parseInt(difficulty, 10);
+  // Empty or invalid input falls back to 0; otherwise clamp to 0-9
+    const level = Number.isNaN(parsed) ? 0 : Math.min(9, Math.max(0, parsed));
+    const g = await createGame(level);
     setGames(prev => [...prev, g]);
     setGameId(g.id);
     setGame(g);
   }
+
+function handleDifficultyChange(e) {
+  const raw = e.target.value;
+
+  // Let the user clear the box while typing
+  if (raw === "") {
+    setDifficulty("");
+    return;
+  }
+
+  const parsed = parseInt(raw, 10);
+  if (Number.isNaN(parsed)) return;
+
+  // 100 becomes 9, -5 becomes 0, "05" becomes 5
+  setDifficulty(String(Math.min(9, Math.max(0, parsed))));
+}
+
+// If they leave the box empty, snap back to the default
+function handleDifficultyBlur() {
+  if (difficulty === "") setDifficulty("0");
+}
+
 //Runs when a board cell is clicked
-//exits early if no gameId, there is a winnerm or the cell is already selected
-// I have backend checks for these two as double security
+//exits early if no gameId, there is a winner or the cell is already selected
+// I have backend checks for these aswell as double security
   async function handleSquareClick(row, col) {
     if (!gameId || game?.winner || game.board[row][col]) return;
     const updated = await playMove(gameId, row, col);
@@ -75,8 +103,18 @@ function App() {
           <Board board={game?.board} onSquareClick={handleSquareClick} />
         </div>
 
-        <div className="new-game">
-          <button onClick={handleNewGame}>New Game</button>
+       <div className="new-game">
+        <label htmlFor="difficulty">Difficulty (0-9)</label>
+          <input
+          id="difficulty"
+          type="number"
+          min="0"
+          max="9"
+          value={difficulty}
+          onChange={handleDifficultyChange}
+          onBlur={handleDifficultyBlur}
+        />
+        <button onClick={handleNewGame}>New Game</button>
         </div>
 
         <div className="game-status">

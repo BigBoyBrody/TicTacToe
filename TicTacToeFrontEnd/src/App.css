@@ -81,6 +81,22 @@ h1{
 .new-game {
   grid-area: newgame;
 }
+
+
+.new-game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.new-game input {
+  padding: 8px;
+  border-radius: 4px;
+  width: 80px;
+  text-align: center;
+}
+
 .new-game button {
   padding: 12px 20px;
   font-size: 1.3rem;

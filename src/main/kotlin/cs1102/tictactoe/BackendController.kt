@@ -44,8 +44,8 @@ class BackendController{
 
     @PostMapping("api/games")
     @Synchronized
-    fun createGame(): Game {
-        return  newGame()
+    fun createGame(@RequestBody difficultyLevel : Int): Game {
+        return  newGame(difficultyLevel)
     }
 
     @PostMapping("api/games/{gameID}")

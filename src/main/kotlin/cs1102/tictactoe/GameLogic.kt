@@ -69,10 +69,10 @@ fun printBoard(board : Array<IntArray> ,row: Int, col: Int): String {
     }
 }
 
-fun newGame() : Game{
-    val game = Game(id = "Game" +  (games.size), level = 9) //since one predefined game state is empty we can just get the size without adding one
+fun newGame(difficultyLevel: Int) : Game{
+    val game = Game(id = "Game" +  (games.size), level = difficultyLevel) //since one predefined game state is empty we can just get the size without adding one
     games.put(game.id, game)
-    println(games)
+    println(game.level)
     return game
 }
 
@@ -168,7 +168,32 @@ fun cpuPlayer(game: Game){
     }
 
 }
+
+fun basicDepthSearch(game: Game, depth: Int): Game{
+    if(depth == 1){
+        var emptySpots = getEmptySpots(game,0,0)
+        fun recurseEmptySpots(emptySpots: Array<IntArray>): Game{
+            if(emptySpots.size == 1) {//end case if we are on the last one no other game worked return this one
+                game.board[emptySpots[0][1]][emptySpots[0][1]] = game.cpuSpace.value
+                return game
+            }else {
+                val newBoard = Array(game.board.size) { game.board[it].copyOf() }//deep copy of the board
+                newBoard[emptySpots[0][0]][emptySpots[1][0]] = game.cpuSpace.value
+                if (checkWin(newBoard, game.cpuSpace)) {
+                    return game.copy(board = newBoard)//winning spot place it here
+                } else {
+                    return recurseEmptySpots(emptySpots.copyOfRange(1, emptySpots.size))
+                }
+            }
+        }
+        return recurseEmptySpots(emptySpots)
+    }else{//else depth ==2
+        return  game   }
+}
+
+
 /**
+ * MiniMax algorithm implementation for TicTacToe
  *
  *
  */
@@ -187,24 +212,22 @@ fun miniMax(game : Game, diffLevel: Int): Game{
     return getNextStates(game,game.cpuSpace).maxBy{search(it,diffLevel) }
 }
 
-//TODO
-//find empty spots for each game
-fun getNextStates(game: Game, marker: BoardMarks): List<Game>{
-    fun getEmptySpots( row: Int,col: Int): Array<IntArray>{
-        return when{
-            col == 3 -> getEmptySpots( row+1, 0)
-            row == 3 -> emptyArray()
-            game.board[row][col] == BoardMarks.EMPTY.value -> arrayOf(intArrayOf(row,col)) + getEmptySpots(row,col+1)
-            else -> getEmptySpots(row,col+1)
-        }
+fun getEmptySpots(game: Game, row: Int,col: Int): Array<IntArray>{
+    return when{
+        col == 3 -> getEmptySpots(game, row+1, 0)
+        row == 3 -> emptyArray()
+        game.board[row][col] == BoardMarks.EMPTY.value -> arrayOf(intArrayOf(row,col)) + getEmptySpots(game,row,col+1)
+        else -> getEmptySpots(game,row,col+1)
     }
+}
 
-    var emptySpaces = getEmptySpots(0,0)
+fun getNextStates(game: Game, marker: BoardMarks): List<Game>{
+    var emptySpaces = getEmptySpots(game,0,0)
     fun generateStates(): List<Game>{
         return when{
             emptySpaces.size == 0 ->emptyList()
             else -> {
-                var newBoard = Array(game.board.size) { game.board[it].copyOf() }//deepy copy of the board
+                var newBoard = Array(game.board.size) { game.board[it].copyOf() }//deep copy of the board
 
                 newBoard[emptySpaces[0][0]][emptySpaces[0][1]] = marker.value
                 emptySpaces = emptySpaces.copyOfRange(1, emptySpaces.size) //updates for terminal check

@@ -19,8 +19,12 @@ export async function getGame(gameId) {
  
 }
 
-export async function createGame() {
-  const res = await fetch(`${BASE_URL}/api/games`, { method: 'POST' });
+export async function createGame(difficultyLevel = 0) {
+  const res = await fetch(`${BASE_URL}/api/games`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(difficultyLevel),
+  });
   return parseOrThrow(res, "Create Game")
 }
 
@@ -30,5 +34,5 @@ export async function playMove(gameId, row, col) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify([row, col]),
   });
-    return parseOrThrow(res, "Create Game")
+    return parseOrThrow(res, "Play Move")
 }
