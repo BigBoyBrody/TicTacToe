@@ -3,6 +3,7 @@ package cs1102.tictactoe
 import kotlin.random.Random
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.shouldBe
 
 
@@ -22,6 +23,14 @@ val games : MutableMap<String,Game> = mutableMapOf( //predefined games
     "Game4" to Game(id = "Game4", board = arrayOf( intArrayOf(1,0,1), intArrayOf(2,2,0), intArrayOf(0,0,0)), level = 1 ),//x goes bot right, o foes mid right to win
     "Game5" to Game(id = "Game5", board = arrayOf( intArrayOf(0,0,1), intArrayOf(2,0,1), intArrayOf(0,0,2)), level = 2),// x goes center, o blocks bottom left
     "Game6" to Game(id = "Game6", board = arrayOf( intArrayOf(1,0,0), intArrayOf(0,2,0), intArrayOf(0,0,0)), level = 2),// x goes bot left 0 blocks mid left
+    "Game7" to Game(id = "Game7", board = arrayOf( intArrayOf(0,0,1), intArrayOf(0,1,2), intArrayOf(2,0,0)), level = 3),// x goes mid left
+    "Game8"  to Game(id = "Game8",  board = arrayOf(intArrayOf(0,0,1), intArrayOf(0,1,2), intArrayOf(2,0,0)), level = 9), // x goes mid left
+    "Game9"  to Game(id = "Game9",  board = arrayOf(intArrayOf(0,0,0), intArrayOf(1,2,1), intArrayOf(0,2,0)), level = 3), // x must block top middle
+    "Game10" to Game(id = "Game10", board = arrayOf(intArrayOf(0,0,0), intArrayOf(0,0,2), intArrayOf(2,1,1)), level = 4), // x goes mid left
+    "Game11" to Game(id = "Game11", board = arrayOf(intArrayOf(0,0,0), intArrayOf(0,0,0), intArrayOf(0,1,2)), level = 5), // x goes bot left
+    "Game12" to Game(id = "Game12", board = arrayOf(intArrayOf(0,0,0), intArrayOf(0,0,0), intArrayOf(0,0,0)), level = 6), // x goes top left
+    "Game13" to Game(id = "Game13", board = arrayOf(intArrayOf(0,0,0), intArrayOf(0,0,0), intArrayOf(0,0,0)), level = 7), // x goes center
+    "Game14" to Game(id = "Game14", board = arrayOf(intArrayOf(0,0,0), intArrayOf(0,0,0), intArrayOf(0,0,0)), level = 8), // x goes top middle
 
     )
 
@@ -76,6 +85,13 @@ fun newGame(difficultyLevel: Int) : Game{
     return game
 }
 
+/** Checks individual row
+ * @param board the board to check
+ * @param markToCheck the mark to check
+ * @param row the starting row
+ * @param col the starting col(default= 0)
+ * @return true if win is reached
+ */
 fun checkRow(board : Array<IntArray>, markToCheck: BoardMarks, row: Int, col: Int): Boolean{
     return when{
         col == 3 ->  true
@@ -83,7 +99,13 @@ fun checkRow(board : Array<IntArray>, markToCheck: BoardMarks, row: Int, col: In
         else -> checkRow(board, markToCheck, row, col+1)
     }
 }
-
+/** Checks all rows
+ * @param board the board to check
+ * @param markToCheck the mark to check
+ * @param row the starting row(default= 0)
+ * @param col the starting col(default= 0)
+ * @return true if win is reached
+ */
 fun checkRows(board : Array<IntArray>, markToCheck: BoardMarks, row: Int, col: Int): Boolean{
     return when{
         row == 3 -> false
@@ -91,6 +113,13 @@ fun checkRows(board : Array<IntArray>, markToCheck: BoardMarks, row: Int, col: I
         else -> checkRows(board, markToCheck, row +1, col)
     }
 }
+/** Checks individual col
+ * @param board the board to check
+ * @param markToCheck the mark to check
+ * @param row the starting row(default= 0)
+ * @param col the starting col
+ * @return true if win is reached
+ */
 fun checkCol(board : Array<IntArray>, markToCheck: BoardMarks, row: Int, col: Int): Boolean{
     return when{
         row == 3 ->  true
@@ -99,6 +128,13 @@ fun checkCol(board : Array<IntArray>, markToCheck: BoardMarks, row: Int, col: In
     }
 }
 
+/** Checks all cols
+ * @param board the board to check
+ * @param markToCheck the mark to check
+ * @param row the starting row(default= 0)
+ * @param col the starting col(default= 0)
+ * @return true if win is reached
+ */
 fun checkCols(board : Array<IntArray>, markToCheck: BoardMarks, row: Int, col: Int): Boolean{
     return when{
         col == 3 -> false
@@ -107,6 +143,13 @@ fun checkCols(board : Array<IntArray>, markToCheck: BoardMarks, row: Int, col: I
     }
 }
 
+/** Checks neg diagonal
+ * @param board the board to check
+ * @param markToCheck the mark to check
+ * @param row the starting row(default= 0)
+ * @param col the starting col(default= 0)
+ * @return true if win is reached
+ */
 fun checkNegDiagonal(board : Array<IntArray>, markToCheck: BoardMarks, row: Int, col: Int): Boolean{
     return when{
         row == 3 && col == 3-> true
@@ -114,6 +157,13 @@ fun checkNegDiagonal(board : Array<IntArray>, markToCheck: BoardMarks, row: Int,
         else -> checkNegDiagonal(board, markToCheck, row+1, col+1)
     }
 }
+/** Checks pos diagonal
+ * @param board the board to check
+ * @param markToCheck the mark to check
+ * @param row the starting row(default= 0)
+ * @param col the starting col(default= 0)
+ * @return true if win is reached
+ */
 fun checkPosDiagonal(board : Array<IntArray>, markToCheck: BoardMarks, row: Int, col: Int): Boolean{
     return when{
         row == -1 && col == 3-> true
@@ -121,6 +171,12 @@ fun checkPosDiagonal(board : Array<IntArray>, markToCheck: BoardMarks, row: Int,
         else -> checkPosDiagonal(board, markToCheck, row-1, col+1)
     }
 }
+/** Checks if every spot is full
+ * @param board the board to check
+ * @param row the starting row(default= 0)
+ * @param col the starting col(default= 0)
+ * @return true if every spot is full
+ */
 fun isTie(board : Array<IntArray>,row: Int,col: Int) : Boolean{
     return when{
         row == 3 -> true
@@ -133,7 +189,11 @@ fun isTie(board : Array<IntArray>,row: Int,col: Int) : Boolean{
         }
     }
 }
-
+/** Checks board for win
+ * @param board the board to check
+ * @param markToCheck the mark to check
+ * @return true if win is reached
+ */
 fun checkWin(board : Array<IntArray>, markToCheck : BoardMarks ): Boolean{
     //check row
     return when{
@@ -144,7 +204,9 @@ fun checkWin(board : Array<IntArray>, markToCheck : BoardMarks ): Boolean{
         else -> false
     }
 }
-
+/** Sets status for win
+ * @param game the game to set status
+ */
 fun winStatus(game: Game){
     if(game.isHumansTurn){
         game.status = GameStatus.HUMAN_WIN
@@ -169,11 +231,22 @@ fun cpuPlayer(game: Game){
 
 }
 
+/**
+ *  Picks random empty spot on
+ * @param emptySpots the spots to randomly pick from
+ * @return an IntArray of row,col
+ */
 fun pickRandomEmpty(emptySpots: Array<IntArray> ): IntArray{
     val rndSpot = Random.nextInt(emptySpots.size)
     return emptySpots[rndSpot]
 }
 
+
+/** Depth search for depths 1 and 2 (like minimax but fixed)
+ *  @param game just the gamestate
+ *  @param depth to go down (limit of 2)
+ *  @return the game with the changed state
+ */
 fun basicDepthSearch(game: Game, depth: Int): Game{
     val emptySpots = getEmptySpots(game,0,0)
     if (emptySpots.isEmpty()) return game
@@ -204,8 +277,9 @@ fun basicDepthSearch(game: Game, depth: Int): Game{
 
 /**
  * MiniMax algorithm implementation for TicTacToe
- *
- *
+ * @param game the game state with the board
+ * @param diffLevel is the difficulty/max depth to search
+ * @return returns the game with the cpus optimized move
  */
 fun miniMax(game : Game, diffLevel: Int): Game{
     fun search(gameState: Game, depth: Int): Int{
@@ -222,6 +296,12 @@ fun miniMax(game : Game, diffLevel: Int): Game{
     return getNextStates(game,game.cpuSpace).maxBy{search(it,diffLevel-1) }
 }
 
+/** Gets all empty spots in board
+ * @param game the game to find all the empty spots in the boar\d
+ * @param row the row to start search (default use enter 0)
+ * @param col the col to start search (default use enter 0)
+ * @return returns an array of intarray that has row,col of empty spots on board
+ */
 fun getEmptySpots(game: Game, row: Int,col: Int): Array<IntArray>{
     return when{
         col == 3 -> getEmptySpots(game, row+1, 0)
@@ -231,6 +311,11 @@ fun getEmptySpots(game: Game, row: Int,col: Int): Array<IntArray>{
     }
 }
 
+/** Gets all possible states for one depth by randomly picking a spot to pick
+ *  @param game the game to check
+ *  @param marker the marker to randomly place
+ *  @return A list of games with the boards mutated to match every possible gameState
+ */
 fun getNextStates(game: Game, marker: BoardMarks): List<Game>{
     var emptySpaces = getEmptySpots(game,0,0)
     fun generateStates(): List<Game>{
@@ -250,7 +335,11 @@ fun getNextStates(game: Game, marker: BoardMarks): List<Game>{
     return generateStates()
 }
 
-
+/** checks for end of game by win or tie or if reached depth for minimax
+ * @param board the board to check for states
+ * @param depth the depth we are at
+ * @return true if game ends or depth == 0
+ */
 fun trivialCases(board : Array<IntArray>, depth : Int): Boolean{
     return when{
         checkWin(board, BoardMarks.X) -> true
@@ -261,6 +350,13 @@ fun trivialCases(board : Array<IntArray>, depth : Int): Boolean{
     }
 }
 
+/** Calculates score for minimax
+ * @param board the board to calc score
+ * @return the util score
+ * If player wins -100
+ * if cpu wins + 100
+ * else 0
+ */
 fun utilScore(board: Array<IntArray>) :Int{
     return when{
         checkWin(board, BoardMarks.X) -> -100
@@ -270,6 +366,13 @@ fun utilScore(board: Array<IntArray>) :Int{
     }
 }
 
+/**
+ * Places mark on the board
+ * @param game to put marker on
+ * @param row row to put marker on
+ * @param col col to put marker on
+ * @return the boardmark that was placed
+ */
 fun placeMark(game: Game, row: Int, col: Int):BoardMarks{
     //var lastMark: BoardMarks = BoardMarks.EMPTY //base value will be changed
     //We only have to check if player inputted valid spot
@@ -285,6 +388,11 @@ fun placeMark(game: Game, row: Int, col: Int):BoardMarks{
     return lastMark
 }
 
+/** Helper to check status win
+ * @param game game to check
+ * @param marker the space marker to check
+ * @return treu if game is ended
+ */
 fun checkStatus(game: Game, marker: BoardMarks):Boolean{
     if(checkWin(game.board, marker)){
         winStatus(game)
@@ -301,6 +409,13 @@ fun checkStatus(game: Game, marker: BoardMarks):Boolean{
 
 }
 
+/**
+ * Makes move from player and then makes cpu move
+ * @param game the game to make move
+ * @param row the row to place human place
+ * @param col the col to place human place
+ * @return the game with altered board
+ */
 fun makeMove(game: Game, row : Int, col: Int) : Game{
     //The frontend calls this function, meaning the player clicked this spot
     val lastMark: BoardMarks = placeMark(game, row, col) //places mark on board with players mark
@@ -374,6 +489,93 @@ fun main(){
         game1.status shouldBe GameStatus.PLAYING
     }
 
+
+
+    //test for level 3
+    val game7 = games["Game7"]
+    if(game7 != null){
+        makeMove(game7,1,0)//mid left
+        //cpu should go bot right
+        arrayOf(arrayOf( intArrayOf(0,0,1), intArrayOf(1,1,2), intArrayOf(2,0,2)),arrayOf( intArrayOf(0,0,1), intArrayOf(1,1,2), intArrayOf(2,2,0)),arrayOf( intArrayOf(2,0,1), intArrayOf(1,1,2), intArrayOf(2,0,0)),arrayOf( intArrayOf(0,2,1), intArrayOf(1,1,2), intArrayOf(2,0,0))).any { it.contentDeepEquals( game7.board ) } shouldBe true
+       // game7.board[2][2] shouldBe  game7.cpuSpace.value
+
+    }
+
+    val game8 = games["Game8"]
+    if(game8 != null){
+        makeMove(game8,1,0)//mid left
+        //cpu can go anywhere left: all four replies draw
+        arrayOf(
+            arrayOf(intArrayOf(2,0,1), intArrayOf(1,1,2), intArrayOf(2,0,0)),
+            arrayOf(intArrayOf(0,2,1), intArrayOf(1,1,2), intArrayOf(2,0,0)),
+            arrayOf(intArrayOf(0,0,1), intArrayOf(1,1,2), intArrayOf(2,2,0)),
+            arrayOf(intArrayOf(0,0,1), intArrayOf(1,1,2), intArrayOf(2,0,2))
+        ).any { it.contentDeepEquals(game8.board) } shouldBe true
+    }
+
+    val game9 = games["Game9"]
+    if(game9 != null){
+        makeMove(game9,0,1)//top middle (blocks column)
+        //cpu should fork: bot left or bot right (win in 3 plies)
+        arrayOf(
+            arrayOf(intArrayOf(0,1,0), intArrayOf(1,2,1), intArrayOf(2,2,0)),
+            arrayOf(intArrayOf(0,1,0), intArrayOf(1,2,1), intArrayOf(0,2,2))
+        ).any { it.contentDeepEquals(game9.board) } shouldBe true
+    }
+
+    val game10 = games["Game10"]
+    if(game10 != null){
+        makeMove(game10,1,0)//mid left
+        //cpu must avoid top right (lets x fork at the center): top left, top middle, or center
+        arrayOf(
+            arrayOf(intArrayOf(2,0,0), intArrayOf(1,0,2), intArrayOf(2,1,1)),
+            arrayOf(intArrayOf(0,2,0), intArrayOf(1,0,2), intArrayOf(2,1,1)),
+            arrayOf(intArrayOf(0,0,0), intArrayOf(1,2,2), intArrayOf(2,1,1))
+        ).any { it.contentDeepEquals(game10.board) } shouldBe true
+    }
+
+    val game11 = games["Game11"]
+    if(game11 != null){
+        makeMove(game11,2,0)//bot left
+        //cpu has a forced win in 3 moves: top right or mid right (level 4 can't see it)
+        arrayOf(
+            arrayOf(intArrayOf(0,0,2), intArrayOf(0,0,0), intArrayOf(1,1,2)),
+            arrayOf(intArrayOf(0,0,0), intArrayOf(0,0,2), intArrayOf(1,1,2))
+        ).any { it.contentDeepEquals(game11.board) } shouldBe true
+    }
+
+    val game12 = games["Game12"]
+    if(game12 != null){
+        makeMove(game12,0,0)//top left corner
+        //cpu should take the center, the only drawing reply
+        arrayOf(
+            arrayOf(intArrayOf(1,0,0), intArrayOf(0,2,0), intArrayOf(0,0,0))
+        ).any { it.contentDeepEquals(game12.board) } shouldBe true
+    }
+
+    val game13 = games["Game13"]
+    if(game13 != null){
+        makeMove(game13,1,1)//center
+        //cpu should take any corner
+        arrayOf(
+            arrayOf(intArrayOf(2,0,0), intArrayOf(0,1,0), intArrayOf(0,0,0)),
+            arrayOf(intArrayOf(0,0,2), intArrayOf(0,1,0), intArrayOf(0,0,0)),
+            arrayOf(intArrayOf(0,0,0), intArrayOf(0,1,0), intArrayOf(2,0,0)),
+            arrayOf(intArrayOf(0,0,0), intArrayOf(0,1,0), intArrayOf(0,0,2))
+        ).any { it.contentDeepEquals(game13.board) } shouldBe true
+    }
+
+    val game14 = games["Game14"]
+    if(game14 != null){
+        makeMove(game14,0,1)//top middle edge
+        //cpu should go top left, top right, center, or bot middle
+        arrayOf(
+            arrayOf(intArrayOf(2,1,0), intArrayOf(0,0,0), intArrayOf(0,0,0)),
+            arrayOf(intArrayOf(0,1,2), intArrayOf(0,0,0), intArrayOf(0,0,0)),
+            arrayOf(intArrayOf(0,1,0), intArrayOf(0,2,0), intArrayOf(0,0,0)),
+            arrayOf(intArrayOf(0,1,0), intArrayOf(0,0,0), intArrayOf(0,2,0))
+        ).any { it.contentDeepEquals(game14.board) } shouldBe true
+    }
 
 
 
